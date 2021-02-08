@@ -1,7 +1,13 @@
+#!/usr/bin/env python3
+
 import threading
 import random
 import os
 import time
+import vlc
+
+media = vlc.MediaPlayer("audio.mp4")
+media.play()
 
 tree = list(open('tree.txt').read().rstrip())
 
