@@ -6,12 +6,32 @@ import os
 import time
 import vlc
 
-media = vlc.MediaPlayer("audio.mp4")
-media.play()
+songs = []
+
+
+if os.path.exists(".\\songs"):
+    for root, dirs, files in os.walk('.\\songs'):
+        for filename in files:
+            if os.path.splitext(filename)[1] == ".mp3":
+                songs.append(filename)
+else:
+    os.mkdir("songs")
+
+vlc_instance = vlc.Instance()
+player = vlc_instance.media_player_new()
 
 tree = list(open('tree.txt').read().rstrip())
 
 mutex = threading.Lock()
+
+def pick_song():
+    media = vlc_instance.media_new("songs\\" + songs[random.randint(0, len(songs) - 1)])
+    player.set_media(media)
+    player.play()
+    time.sleep(1.5)
+    duration = player.get_length() / 1000
+    time.sleep(duration)
+    pick_song()
 
 def colored_dot(color):
     if color == 'red':
@@ -62,6 +82,10 @@ ty = threading.Thread(target=lights, args=('yellow', yellow))
 tr = threading.Thread(target=lights, args=('red', red))
 tg = threading.Thread(target=lights, args=('green', green))
 tb = threading.Thread(target=lights, args=('blue', blue))
+
+if (len(songs) > 0):
+    tsong = threading.Thread(target=pick_song)
+    tsong.start()
 
 for t in [ty, tr, tg, tb]:
     t.start()
