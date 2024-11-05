@@ -1,9 +1,15 @@
 import time
 import curses
 import os
+import sys
 import threading
 import random
-import vlc
+
+try:
+    import vlc
+except:
+    print("VLC is not installed, please install the module or the software")
+    sys.exit(-1)
 
 def colored_dot(color):
     if color == 'red':
