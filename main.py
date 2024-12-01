@@ -6,11 +6,13 @@ import os
 import time
 import sys
 
+song_enabled = False
+
 try:
     import vlc
+    song_enabled = True
 except:
     print("VLC is not installed, please install the module or the software")
-    sys.exit(-1)
 
 COLOR_MAP = {
     "Y": "\033[93m",  # Yellow
@@ -127,19 +129,20 @@ def main():
         threads.append(thread)
         thread.start()
 
-    # Get all songs
-    songs = []
+    if song_enabled:
+        # Get all songs
+        songs = []
 
-    if os.path.exists(".\\songs"):
-        for root, dirs, files in os.walk('.\\songs'):
-            for filename in files:
-                if os.path.splitext(filename)[1] == ".mp3":
-                    songs.append(filename)
-    else:
-        os.mkdir("songs")
+        if os.path.exists(".\\songs"):
+            for root, dirs, files in os.walk('.\\songs'):
+                for filename in files:
+                    if os.path.splitext(filename)[1] == ".mp3":
+                        songs.append(filename)
+        else:
+            os.mkdir("songs")
 
-    music_thread = MusicPlayer(songs)
-    music_thread.start()
+        music_thread = MusicPlayer(songs)
+        music_thread.start()
 
     # Clear screen
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -152,8 +155,9 @@ def main():
             time.sleep(0.1)  # Refresh rate for the tree
     except KeyboardInterrupt:
         print("\nExiting gracefully...")
-        music_thread.stop()
-        music_thread.join()
+        if song_enabled:
+            music_thread.stop()
+            music_thread.join()
 
     show_cursor()
 
