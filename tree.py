@@ -4,7 +4,13 @@ import threading
 import random
 import os
 import time
-import vlc
+import sys
+
+try:
+    import vlc
+except:
+    print("VLC is not installed, please install the module or the software")
+    sys.exit(-1)
 
 songs = []
 
@@ -49,7 +55,7 @@ def lights(color, indexes):
     while True:
         for i in indexes:
             tree[i] = colored_dot(color) if not off else '●'
-        
+
         mutex.acquire()
         os.system('cls' if os.name == 'nt' else 'clear')
         print(''.join(tree))
