@@ -1,3 +1,4 @@
 songs
 .idea
 .venv
+__pycache__

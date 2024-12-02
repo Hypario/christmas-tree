@@ -9,6 +9,7 @@ import platform
 import MP3Player
 
 song_enabled = False
+driver = None
 
 try:
     import vlc
@@ -41,8 +42,8 @@ class MusicPlayer(threading.Thread):
         self.player = None
 
         if self.driver == 'vlc':
-            driver_instance = vlc.Instance("--quiet")
-            self.player = driver_instance.media_player_new()
+            self.driver_instance = vlc.Instance("--quiet")
+            self.player = self.driver_instance.media_player_new()
         elif self.driver == 'winmm':
             self.driver_instance = MP3Player.MP3Player(quiet=True)
             self.player = self.driver_instance
