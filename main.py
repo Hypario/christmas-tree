@@ -5,14 +5,22 @@ import random
 import os
 import time
 import sys
+import platform
+import MP3Player
 
 song_enabled = False
 
 try:
     import vlc
     song_enabled = True
+    driver = 'vlc'
 except:
-    print("VLC is not installed, please install the module or the software")
+    if platform.system() == "Windows":
+        # use the MP3Player class
+        song_enabled = True
+        driver = 'winmm'
+    else:
+        print("VLC is not installed, please install the module or the software, or use Windows")
 
 COLOR_MAP = {
     "Y": "\033[93m",  # Yellow
@@ -24,24 +32,40 @@ COLOR_MAP = {
 RESET_TERMINAL = "\033[0m"
 
 class MusicPlayer(threading.Thread):
-    def __init__(self, songs):
+    def __init__(self, driver, songs):
         super().__init__()
+        self.driver = driver
         self.songs = songs # List of songs
-        self.vlc_instance = vlc.Instance("--quiet")
-        self.player = self.vlc_instance.media_player_new()
+
+        self.driver_instance = None
+        self.player = None
+
+        if self.driver == 'vlc':
+            driver_instance = vlc.Instance("--quiet")
+            self.player = driver_instance.media_player_new()
+        elif self.driver == 'winmm':
+            self.driver_instance = MP3Player.MP3Player(quiet=True)
+            self.player = self.driver_instance
+
         self.stop_flag = False # Flag to stop the thread gracefully
 
     def run(self):
         random.shuffle(self.songs)
         for song in self.songs:
             if self.stop_flag: break
-            self.player.set_media(self.vlc_instance.media_new("songs\\" + song))
+            self.set_media("songs\\" + song)
             self.player.play()
             while self.player.is_playing():
                 if self.stop_flag:
                     self.player.stop()
                     break
                 time.sleep(1.5)
+
+    def set_media(self, media):
+        if driver == 'vlc':
+            self.player.set_media(self.driver_instance.media_new(media))
+        elif driver == 'winmm':
+            self.player.set_media(media)
 
     def stop(self):
         self.stop_flag = True
@@ -141,7 +165,7 @@ def main():
         else:
             os.mkdir("songs")
 
-        music_thread = MusicPlayer(songs)
+        music_thread = MusicPlayer(driver, songs)
         music_thread.start()
 
     # Clear screen
