@@ -5,23 +5,11 @@ import random
 import os
 import time
 import sys
-import platform
-import MP3Player
 
-song_enabled = False
-driver = None
+from src.MusicPlayer import MusicPlayer
+from src import get_driver
 
-try:
-    import vlc
-    song_enabled = True
-    driver = 'vlc'
-except:
-    if platform.system() == "Windows":
-        # use the MP3Player class
-        song_enabled = True
-        driver = 'winmm'
-    else:
-        print("VLC is not installed, please install the module or the software, or use Windows")
+driver = get_driver()
 
 COLOR_MAP = {
     "Y": "\033[93m",  # Yellow
@@ -31,46 +19,6 @@ COLOR_MAP = {
 }
 
 RESET_TERMINAL = "\033[0m"
-
-class MusicPlayer(threading.Thread):
-    def __init__(self, driver, songs):
-        super().__init__()
-        self.driver = driver
-        self.songs = songs # List of songs
-
-        self.driver_instance = None
-        self.player = None
-
-        if self.driver == 'vlc':
-            self.driver_instance = vlc.Instance("--quiet")
-            self.player = self.driver_instance.media_player_new()
-        elif self.driver == 'winmm':
-            self.driver_instance = MP3Player.MP3Player(quiet=True)
-            self.player = self.driver_instance
-
-        self.stop_flag = False # Flag to stop the thread gracefully
-
-    def run(self):
-        random.shuffle(self.songs)
-        for song in self.songs:
-            if self.stop_flag: break
-            self.set_media("songs\\" + song)
-            self.player.play()
-            while self.player.is_playing():
-                if self.stop_flag:
-                    self.player.stop()
-                    break
-                time.sleep(1.5)
-
-    def set_media(self, media):
-        if driver == 'vlc':
-            self.player.set_media(self.driver_instance.media_new(media))
-        elif driver == 'winmm':
-            self.player.set_media(media)
-
-    def stop(self):
-        self.stop_flag = True
-        self.player.stop()
 
 
 def light_positions(tree):
@@ -154,7 +102,7 @@ def main():
         threads.append(thread)
         thread.start()
 
-    if song_enabled:
+    if driver:
         # Get all songs
         songs = []
 
@@ -180,7 +128,7 @@ def main():
             time.sleep(0.1)  # Refresh rate for the tree
     except KeyboardInterrupt:
         print("\nExiting gracefully...")
-        if song_enabled:
+        if driver:
             music_thread.stop()
             music_thread.join()
 
