@@ -1,17 +1,17 @@
 import platform
 
-def get_driver():
+def get_driver(debug=False):
     driver = None
     try:
         from src.VLCDriver import VLCDriver
 
-        driver = VLCDriver(quiet=True)
+        driver = VLCDriver(quiet=not debug)
     except (ModuleNotFoundError, FileNotFoundError):
         if platform.system() == "Windows":
-            # use the MP3Player class
+            # use the Winmm driver
             from src.WinmmDriver import WinmmDriver
 
-            driver = WinmmDriver(quiet=True)
+            driver = WinmmDriver(quiet=not debug)
         else:
             print("VLC is not installed, please install the module or the software, or use Windows")
             exit(-1)

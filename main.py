@@ -9,7 +9,9 @@ import sys
 from src.MusicPlayer import MusicPlayer
 from src import get_driver
 
-driver = get_driver()
+debug = False
+
+driver = get_driver(debug=debug)
 
 COLOR_MAP = {
     "Y": "\033[93m",  # Yellow
@@ -102,35 +104,34 @@ def main():
         threads.append(thread)
         thread.start()
 
-    if driver:
-        # Get all songs
-        songs = []
+    # Get all songs
+    songs = []
 
-        if os.path.exists(".\\songs"):
-            for root, dirs, files in os.walk('.\\songs'):
-                for filename in files:
-                    if os.path.splitext(filename)[1] == ".mp3":
-                        songs.append(filename)
-        else:
-            os.mkdir("songs")
-
-        music_thread = MusicPlayer(driver, songs)
-        music_thread.start()
+    if os.path.exists(".\\songs"):
+        for root, dirs, files in os.walk('.\\songs'):
+            for filename in files:
+                if os.path.splitext(filename)[1] == ".mp3":
+                    songs.append(filename)
+    else:
+        os.mkdir("songs")
 
     # Clear screen
     os.system('cls' if os.name == 'nt' else 'clear')
 
     hide_cursor()
 
+    music_thread = MusicPlayer(driver, songs, debug=debug)
+    music_thread.start()
+
     try:
         while True:
-            draw_tree(tree, light_coords, color_state)
+            if not debug:
+                draw_tree(tree, light_coords, color_state)
             time.sleep(0.1)  # Refresh rate for the tree
     except KeyboardInterrupt:
         print("\nExiting gracefully...")
-        if driver:
-            music_thread.stop()
-            music_thread.join()
+        music_thread.stop()
+        music_thread.join()
 
     show_cursor()
 
