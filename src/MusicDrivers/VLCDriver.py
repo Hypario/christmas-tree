@@ -1,4 +1,4 @@
-from src.DriverInterface import DriverInterface
+from src.MusicDrivers.DriverInterface import DriverInterface
 
 try:
     import vlc

@@ -5,7 +5,7 @@ import os
 import time
 import uuid
 
-from src.DriverInterface import DriverInterface
+from src.MusicDrivers.DriverInterface import DriverInterface
 
 
 class WinmmDriver(DriverInterface):

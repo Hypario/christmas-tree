@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-
+import curses
 import threading
 import random
 import os
 import time
-import sys
 
-from src.MusicPlayer import MusicPlayer
-from src import get_driver
+from curses import wrapper
+
+from src import get_driver, MusicPlayer
 
 debug = False
 
 driver = get_driver(debug=debug)
 
 COLOR_MAP = {
-    "Y": "\033[93m",  # Yellow
-    "R": "\033[91m",  # Red
-    "G": "\033[92m",  # Green
-    "B": "\033[94m",  # Blue
+    "Y": 1,
+    "R": 2,
+    "G": 3,
+    "B": 4,
 }
 
 RESET_TERMINAL = "\033[0m"
@@ -57,13 +57,11 @@ def flicker_color(color_state, color):
         time.sleep(random.uniform(0.5, 1.5))  # Flicker at random intervals
 
 
-def draw_tree(tree, light_coords, color_state):
+def draw_tree(tree, light_coords, color_state, stdscr):
     """
     Draws the tree with lights at specific coordinates, dynamically flickering by color.
     """
-    sys.stdout.write("\033[H")  # Move cursor to the top-left corner
     for row, line in enumerate(tree):
-        updated_line = ""
         for col, char in enumerate(line.rstrip("\n")):
             light = next(
                 (color for color, coords in light_coords.items() if (row, col) in coords),
@@ -71,26 +69,21 @@ def draw_tree(tree, light_coords, color_state):
             )
             if light:
                 if color_state[light]:
-                    updated_line += COLOR_MAP[light] + '●' + RESET_TERMINAL
+                    stdscr.addstr('●', curses.color_pair(COLOR_MAP[light]))
                 else:
-                    updated_line += '●'
+                    stdscr.addstr('●')
             else:
-                updated_line += char
-        sys.stdout.write(updated_line + "\n")
-    sys.stdout.flush()
+                stdscr.addch(char)
+        stdscr.addstr("\n")
+    stdscr.refresh()
 
-def hide_cursor():
-    """Hide the terminal cursor."""
-    sys.stdout.write("\033[?25l")
-    sys.stdout.flush()
+def main(stdscr):
+    curses.curs_set(0)
+    curses.init_pair(COLOR_MAP["Y"], curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    curses.init_pair(COLOR_MAP["R"], curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(COLOR_MAP["G"], curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(COLOR_MAP["B"], curses.COLOR_BLUE, curses.COLOR_BLACK)
 
-def show_cursor():
-    """Show the terminal cursor."""
-    sys.stdout.write("\033[?25h")
-    sys.stdout.flush()
-
-
-def main():
     tree = open('tree.txt').readlines()
     tree, light_coords = light_positions(tree)
 
@@ -115,10 +108,7 @@ def main():
     else:
         os.mkdir("songs")
 
-    # Clear screen
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-    hide_cursor()
+    stdscr.clear()
 
     music_thread = MusicPlayer(driver, songs, debug=debug)
     music_thread.start()
@@ -126,15 +116,12 @@ def main():
     try:
         while True:
             if not debug:
-                draw_tree(tree, light_coords, color_state)
-            time.sleep(0.1)  # Refresh rate for the tree
+                stdscr.clear()
+                draw_tree(tree, light_coords, color_state, stdscr)
+            time.sleep(0.1)
     except KeyboardInterrupt:
-        print("\nExiting gracefully...")
         music_thread.stop()
         music_thread.join()
 
-    show_cursor()
-
-
 if __name__ == '__main__':
-    main()
+    wrapper(main)

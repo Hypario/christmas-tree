@@ -2,8 +2,7 @@ import threading
 import random
 import time
 
-from src.DriverInterface import DriverInterface
-
+from src.MusicDrivers import DriverInterface
 
 class MusicPlayer(threading.Thread):
     def __init__(self, driver: DriverInterface, songs, debug=False):
