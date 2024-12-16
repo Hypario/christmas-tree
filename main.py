@@ -1,26 +1,25 @@
 #!/usr/bin/env python3
-import curses
+
 import threading
 import random
 import os
 import time
 
-from curses import wrapper
-
-from src import get_driver, MusicPlayer
+from src import get_driver, MusicPlayer, get_engine, Color
 
 debug = False
 
 driver = get_driver(debug=debug)
+engine = get_engine()
 
 COLOR_MAP = {
-    "Y": 1,
-    "R": 2,
-    "G": 3,
-    "B": 4,
+    "Y": Color.YELLOW,
+    "R": Color.RED,
+    "G": Color.GREEN,
+    "B": Color.BLUE,
 }
 
-RESET_TERMINAL = "\033[0m"
+# RESET_TERMINAL = "\033[0m"
 
 
 def light_positions(tree):
@@ -57,7 +56,7 @@ def flicker_color(color_state, color):
         time.sleep(random.uniform(0.5, 1.5))  # Flicker at random intervals
 
 
-def draw_tree(tree, light_coords, color_state, stdscr):
+def draw_tree(tree, light_coords, color_state):
     """
     Draws the tree with lights at specific coordinates, dynamically flickering by color.
     """
@@ -69,20 +68,16 @@ def draw_tree(tree, light_coords, color_state, stdscr):
             )
             if light:
                 if color_state[light]:
-                    stdscr.addstr('●', curses.color_pair(COLOR_MAP[light]))
+                    engine.addstr('●', COLOR_MAP[light])
                 else:
-                    stdscr.addstr('●')
+                    engine.addstr('●')
             else:
-                stdscr.addch(char)
-        stdscr.addstr("\n")
-    stdscr.refresh()
+                engine.addch(char)
+        engine.addch("\n")
+    engine.refresh()
 
-def main(stdscr):
-    curses.curs_set(0)
-    curses.init_pair(COLOR_MAP["Y"], curses.COLOR_YELLOW, curses.COLOR_BLACK)
-    curses.init_pair(COLOR_MAP["R"], curses.COLOR_RED, curses.COLOR_BLACK)
-    curses.init_pair(COLOR_MAP["G"], curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(COLOR_MAP["B"], curses.COLOR_BLUE, curses.COLOR_BLACK)
+def main():
+    engine.hide_cursor()
 
     tree = open('tree.txt').readlines()
     tree, light_coords = light_positions(tree)
@@ -108,7 +103,7 @@ def main(stdscr):
     else:
         os.mkdir("songs")
 
-    stdscr.clear()
+    engine.clear()
 
     music_thread = MusicPlayer(driver, songs, debug=debug)
     music_thread.start()
@@ -116,12 +111,14 @@ def main(stdscr):
     try:
         while True:
             if not debug:
-                stdscr.clear()
-                draw_tree(tree, light_coords, color_state, stdscr)
+                engine.clear()
+                draw_tree(tree, light_coords, color_state)
             time.sleep(0.1)
     except KeyboardInterrupt:
         music_thread.stop()
         music_thread.join()
 
+    engine.exit()
+
 if __name__ == '__main__':
-    wrapper(main)
+    main()

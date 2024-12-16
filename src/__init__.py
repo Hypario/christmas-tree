@@ -1,5 +1,7 @@
 import platform
-from src.MusicPlayer import MusicPlayer
+
+from .Engines import EngineInterface, Color
+from .MusicPlayer import MusicPlayer
 
 def get_driver(debug=False):
     try:
@@ -13,3 +15,12 @@ def get_driver(debug=False):
         else:
             print("VLC is not installed, please install the module or the software, or use Windows")
             exit(-1)
+
+def get_engine() -> EngineInterface:
+    try:
+        from .Engines import get_curse_engine
+
+        return get_curse_engine()
+    except ModuleNotFoundError:
+        print("Curses not found, no alternative implemented yet, please install windows-curses")
+        exit(-1)
